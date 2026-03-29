@@ -1,10 +1,82 @@
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { useInstallPrompt } from '../hooks/useInstallPrompt'
+
+function InstallBanner() {
+  const { prompt, isInstalled, triggerInstall, showIOSInstructions } = useInstallPrompt()
+  const [showIOS, setShowIOS] = useState(false)
+  const [installed, setInstalled] = useState(false)
+
+  if (isInstalled || installed) return null
+
+  // Android/Chrome: bottone che triggera il prompt nativo
+  if (prompt) {
+    return (
+      <button
+        onClick={async () => {
+          const ok = await triggerInstall()
+          if (ok) setInstalled(true)
+        }}
+        className="flex items-center gap-2 w-full max-w-sm px-4 py-3 rounded-2xl border border-paper-300 bg-white/70 hover:bg-white transition-colors shadow-sm"
+      >
+        <span className="text-xl">📲</span>
+        <div className="text-left flex-1">
+          <p className="text-sm font-medium text-ink">Scarica l'app</p>
+          <p className="text-xs text-ink-muted">Installa sul tuo dispositivo</p>
+        </div>
+        <span className="text-ink-muted text-xs border border-paper-300 rounded-lg px-2 py-1">Installa</span>
+      </button>
+    )
+  }
+
+  // iPhone/Safari: mostra istruzioni manuali
+  if (showIOSInstructions) {
+    return (
+      <div className="w-full max-w-sm">
+        <button
+          onClick={() => setShowIOS(s => !s)}
+          className="flex items-center gap-2 w-full px-4 py-3 rounded-2xl border border-paper-300 bg-white/70 hover:bg-white transition-colors shadow-sm"
+        >
+          <span className="text-xl">📲</span>
+          <div className="text-left flex-1">
+            <p className="text-sm font-medium text-ink">Scarica l'app</p>
+            <p className="text-xs text-ink-muted">Aggiungi alla schermata Home</p>
+          </div>
+          <span className="text-ink-muted text-lg">{showIOS ? '▲' : '▼'}</span>
+        </button>
+
+        {showIOS && (
+          <div className="mt-2 bg-white border border-paper-300 rounded-2xl px-4 py-4 shadow-sm space-y-3">
+            <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider">Come installare su iPhone</p>
+            {[
+              { n: '1', icon: '⬆️', text: 'Tocca il tasto Condividi in fondo allo schermo' },
+              { n: '2', icon: '➕', text: 'Scorri e tocca "Aggiungi a schermata Home"' },
+              { n: '3', icon: '✅', text: 'Tocca "Aggiungi" in alto a destra' },
+            ].map(({ n, icon, text }) => (
+              <div key={n} className="flex items-start gap-3">
+                <span className="w-5 h-5 rounded-full bg-ink text-white text-xs flex items-center justify-center shrink-0 mt-0.5">{n}</span>
+                <div className="flex items-start gap-1.5">
+                  <span>{icon}</span>
+                  <p className="text-sm text-ink">{text}</p>
+                </div>
+              </div>
+            ))}
+            <p className="text-xs text-ink-muted pt-1 border-t border-paper-200">
+              L'app apparirà nella home come un'icona normale, senza barra del browser.
+            </p>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  return null
+}
 
 export default function AuthPage() {
   const { signIn, signUp } = useAuth()
 
-  const [mode,        setMode]        = useState('login')   // 'login' | 'register'
+  const [mode,        setMode]        = useState('login')
   const [email,       setEmail]       = useState('')
   const [password,    setPassword]    = useState('')
   const [displayName, setDisplayName] = useState('')
@@ -54,7 +126,6 @@ export default function AuthPage() {
         setConfirmPwd('')
       }
     } catch (err) {
-      // Traduce i messaggi Supabase in italiano
       const msg = err.message || ''
       if (msg.includes('Invalid login credentials'))
         setError('Email o password errati.')
@@ -79,21 +150,23 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-paper-100 flex flex-col items-center justify-center px-4">
+    <div className="min-h-screen bg-paper-100 flex flex-col items-center justify-center px-4 gap-4">
       {/* Logo */}
-      <div className="mb-8 text-center">
+      <div className="mb-2 text-center">
         <div className="text-5xl mb-3">📔</div>
         <h1 className="font-serif text-3xl font-bold text-ink tracking-wide">Diario</h1>
         <p className="text-sm text-ink-muted mt-1">Il tuo spazio personale</p>
       </div>
 
+      {/* Install banner */}
+      <InstallBanner />
+
       {/* Card */}
       <div className="paper-card rounded-2xl w-full max-w-sm p-6 shadow-lg">
-
         {/* Tab switch */}
         <div className="flex bg-paper-200 rounded-xl p-1 mb-6">
           {[
-            { key: 'login',    label: 'Accedi'    },
+            { key: 'login',    label: 'Accedi'     },
             { key: 'register', label: 'Registrati' },
           ].map(({ key, label }) => (
             <button
@@ -101,9 +174,7 @@ export default function AuthPage() {
               onClick={() => switchMode(key)}
               className={[
                 'flex-1 py-1.5 text-sm font-medium rounded-lg transition-all',
-                mode === key
-                  ? 'bg-white text-ink shadow-sm'
-                  : 'text-ink-muted hover:text-ink',
+                mode === key ? 'bg-white text-ink shadow-sm' : 'text-ink-muted hover:text-ink',
               ].join(' ')}
             >
               {label}
@@ -112,13 +183,9 @@ export default function AuthPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-3" noValidate>
-
-          {/* Nome visualizzato (solo registrazione) */}
           {mode === 'register' && (
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">
-                Nome visualizzato
-              </label>
+              <label className="block text-xs font-medium text-ink-muted mb-1">Nome visualizzato</label>
               <input
                 type="text"
                 autoComplete="name"
@@ -130,7 +197,6 @@ export default function AuthPage() {
             </div>
           )}
 
-          {/* Email */}
           <div>
             <label className="block text-xs font-medium text-ink-muted mb-1">Email</label>
             <input
@@ -143,7 +209,6 @@ export default function AuthPage() {
             />
           </div>
 
-          {/* Password */}
           <div>
             <label className="block text-xs font-medium text-ink-muted mb-1">Password</label>
             <input
@@ -156,12 +221,9 @@ export default function AuthPage() {
             />
           </div>
 
-          {/* Conferma password (solo registrazione) */}
           {mode === 'register' && (
             <div>
-              <label className="block text-xs font-medium text-ink-muted mb-1">
-                Conferma password
-              </label>
+              <label className="block text-xs font-medium text-ink-muted mb-1">Conferma password</label>
               <input
                 type="password"
                 autoComplete="new-password"
@@ -173,21 +235,17 @@ export default function AuthPage() {
             </div>
           )}
 
-          {/* Errore */}
           {error && (
             <div className="text-xs text-missed bg-missed/10 border border-missed/20 rounded-lg px-3 py-2">
               {error}
             </div>
           )}
-
-          {/* Successo */}
           {success && (
             <div className="text-xs text-done bg-done/10 border border-done/20 rounded-lg px-3 py-2">
               {success}
             </div>
           )}
 
-          {/* Submit */}
           <button
             type="submit"
             disabled={loading}
@@ -201,7 +259,7 @@ export default function AuthPage() {
         </form>
       </div>
 
-      <p className="mt-6 text-xs text-ink-muted text-center">
+      <p className="text-xs text-ink-muted text-center pb-8">
         I tuoi dati sono privati e visibili solo a te.
       </p>
     </div>
