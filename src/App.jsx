@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { AuthProvider, useAuth } from './context/AuthContext'
-import AuthPage           from './components/AuthPage'
-import ResetPasswordPage  from './components/ResetPasswordPage'
+import AuthPage            from './components/AuthPage'
+import ResetPasswordPage   from './components/ResetPasswordPage'
+import EmailConfirmedPage  from './components/EmailConfirmedPage'
 import Calendar    from './components/Calendar'
 import DayView     from './components/DayView'
 import StatsPanel  from './components/StatsPanel'
@@ -118,7 +119,7 @@ function DiaryApp() {
 
 // ---- Root ----
 function Root() {
-  const { user, loading, isRecovering } = useAuth()
+  const { user, loading, isRecovering, justConfirmed, dismissConfirmed } = useAuth()
 
   if (loading) {
     return (
@@ -131,7 +132,8 @@ function Root() {
     )
   }
 
-  if (isRecovering) return <ResetPasswordPage />
+  if (isRecovering)   return <ResetPasswordPage />
+  if (justConfirmed)  return <EmailConfirmedPage onContinue={dismissConfirmed} />
   return user ? <DiaryApp /> : <AuthPage />
 }
 

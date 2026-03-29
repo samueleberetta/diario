@@ -154,12 +154,12 @@ export default function AuthPage() {
 
   const [mode,        setMode]        = useState('login')
   const [showForgot,  setShowForgot]  = useState(false)
+  const [checkEmail,  setCheckEmail]  = useState(false)
   const [email,       setEmail]       = useState('')
   const [password,    setPassword]    = useState('')
   const [displayName, setDisplayName] = useState('')
   const [confirmPwd,  setConfirmPwd]  = useState('')
   const [error,       setError]       = useState('')
-  const [success,     setSuccess]     = useState('')
   const [loading,     setLoading]     = useState(false)
 
   function reset() {
@@ -197,10 +197,7 @@ export default function AuthPage() {
         await signIn(email.trim(), password)
       } else {
         await signUp(email.trim(), password, displayName.trim())
-        setSuccess('Account creato! Puoi accedere ora.')
-        setMode('login')
-        setPassword('')
-        setConfirmPwd('')
+        setCheckEmail(true)
       }
     } catch (err) {
       const msg = err.message || ''
@@ -234,6 +231,35 @@ export default function AuthPage() {
           <h1 className="font-serif text-3xl font-bold text-ink tracking-wide">Diario</h1>
         </div>
         <ForgotPasswordForm onBack={() => setShowForgot(false)} />
+      </div>
+    )
+  }
+
+  if (checkEmail) {
+    return (
+      <div className="min-h-screen bg-paper-100 flex flex-col items-center justify-center px-4">
+        <div className="paper-card rounded-2xl w-full max-w-sm p-8 shadow-lg text-center">
+          <div className="text-5xl mb-4">📬</div>
+          <h1 className="font-serif text-2xl font-bold text-ink mb-3">
+            Controlla la tua email
+          </h1>
+          <p className="text-sm text-ink-muted leading-relaxed mb-2">
+            Ti abbiamo inviato un link di conferma a
+          </p>
+          <p className="text-sm font-medium text-ink mb-5 break-all">{email}</p>
+          <p className="text-sm text-ink-muted leading-relaxed mb-6">
+            Clicca il link nell'email per attivare il tuo account e iniziare a usare il Diario.
+          </p>
+          <div className="border-t border-paper-200 pt-4">
+            <p className="text-xs text-ink-muted mb-2">Non hai ricevuto nulla?</p>
+            <button
+              onClick={() => { setCheckEmail(false); setMode('register') }}
+              className="text-xs text-ink underline underline-offset-2 hover:text-ink-light transition-colors"
+            >
+              Torna indietro e riprova
+            </button>
+          </div>
+        </div>
       </div>
     )
   }
@@ -338,11 +364,6 @@ export default function AuthPage() {
           {error && (
             <div className="text-xs text-missed bg-missed/10 border border-missed/20 rounded-lg px-3 py-2">
               {error}
-            </div>
-          )}
-          {success && (
-            <div className="text-xs text-done bg-done/10 border border-done/20 rounded-lg px-3 py-2">
-              {success}
             </div>
           )}
 

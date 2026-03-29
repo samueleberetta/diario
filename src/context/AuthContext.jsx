@@ -4,9 +4,14 @@ import { supabase } from '../lib/supabase'
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
-  const [user,        setUser]        = useState(null)
-  const [loading,     setLoading]     = useState(true)
+  const [user,         setUser]         = useState(null)
+  const [loading,      setLoading]      = useState(true)
   const [isRecovering, setIsRecovering] = useState(false)
+  // Rilevato sincronicamente prima che Supabase pulisca l'hash
+  const [justConfirmed, setJustConfirmed] = useState(() => {
+    const params = new URLSearchParams(window.location.hash.replace('#', ''))
+    return params.get('type') === 'signup'
+  })
 
   useEffect(() => {
     supabase.auth.getSession()
@@ -65,10 +70,16 @@ export function AuthProvider({ children }) {
 
   const displayName = user?.user_metadata?.display_name || user?.email?.split('@')[0] || 'Utente'
 
+  function dismissConfirmed() {
+    setJustConfirmed(false)
+    // Pulisce l'hash dall'URL senza ricaricare la pagina
+    history.replaceState(null, '', window.location.pathname)
+  }
+
   return (
     <AuthContext.Provider value={{
-      user, loading, displayName, isRecovering,
-      signUp, signIn, signOut, forgotPassword, updatePassword,
+      user, loading, displayName, isRecovering, justConfirmed,
+      signUp, signIn, signOut, forgotPassword, updatePassword, dismissConfirmed,
     }}>
       {children}
     </AuthContext.Provider>
