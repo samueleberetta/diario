@@ -9,10 +9,16 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     // Sessione corrente al mount
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        setUser(session?.user ?? null)
+      })
+      .catch(() => {
+        setUser(null)
+      })
+      .finally(() => {
+        setLoading(false)
+      })
 
     // Ascolta cambiamenti di stato auth (login / logout / refresh token)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
