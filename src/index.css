@@ -21,6 +21,11 @@
   #root {
     min-height: 100svh;
   }
+
+  /* Fix: impedisce lo zoom automatico di iOS Safari sugli input con font < 16px */
+  input, textarea, select {
+    font-size: 16px;
+  }
 }
 
 @layer components {

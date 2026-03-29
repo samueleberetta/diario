@@ -89,18 +89,23 @@ export default function Calendar({ entries, questionDefs, eventsForDate, onSelec
       </div>
 
       {/* Weekday headers */}
-      <div className="grid grid-cols-7 mb-1">
+      <div className="grid grid-cols-7 border-b border-paper-300/60 mb-0">
         {DAYS_IT.map(d => (
-          <div key={d} className="text-center text-xs font-medium text-ink-muted py-1 tracking-wider uppercase">
+          <div key={d} className="text-center text-xs font-medium text-ink-muted py-2 tracking-wider uppercase">
             {d}
           </div>
         ))}
       </div>
 
-      {/* Days grid */}
-      <div className="grid grid-cols-7 gap-1">
+      {/* Days grid — bordi condivisi stile agenda */}
+      <div className="grid grid-cols-7 border-l border-t border-paper-300/60">
         {cells.map((day, idx) => {
-          if (!day) return <div key={`empty-${idx}`} />
+          if (!day) return (
+            <div
+              key={`empty-${idx}`}
+              className="border-r border-b border-paper-300/60 min-h-[52px]"
+            />
+          )
 
           const dateStr = `${year}-${String(month + 1).padStart(2,'0')}-${String(day).padStart(2,'0')}`
           const entry   = entries[dateStr] || null
@@ -108,20 +113,19 @@ export default function Calendar({ entries, questionDefs, eventsForDate, onSelec
           const events  = eventsForDate(dateStr)
           const isToday = dateStr === todayStr
           const isFuture = dateStr > todayStr
-          const hasContent = status !== 'empty' || entry?.diary
 
           return (
             <button
               key={dateStr}
               onClick={() => onSelectDay(dateStr)}
               className={[
-                'relative flex flex-col items-center justify-start p-1 pt-1.5 rounded-lg',
+                'relative flex flex-col items-center justify-start p-1 pt-1.5',
                 'min-h-[52px] transition-all duration-150 group',
-                'border border-transparent',
+                'border-r border-b border-paper-300/60',
                 isToday
-                  ? 'border-ink/30 bg-paper-100 shadow-sm'
-                  : `hover:bg-paper-200 ${STATUS_BG[status]}`,
-                isFuture && !isToday ? 'opacity-60' : '',
+                  ? 'bg-paper-200/70'
+                  : `hover:bg-paper-200/60 ${STATUS_BG[status]}`,
+                isFuture && !isToday ? 'opacity-50' : '',
               ].join(' ')}
               aria-label={`${day} ${MONTHS_IT[month]} ${year}`}
             >
@@ -138,9 +142,9 @@ export default function Calendar({ entries, questionDefs, eventsForDate, onSelec
                 <span className={`mt-1 w-2 h-2 rounded-full ${STATUS_DOT[status]}`} />
               )}
 
-              {/* Today ring */}
+              {/* Today highlight */}
               {isToday && (
-                <span className="absolute inset-0 rounded-lg ring-2 ring-ink/20 pointer-events-none" />
+                <span className="absolute inset-0 ring-2 ring-inset ring-ink/25 pointer-events-none" />
               )}
 
               {/* Special events */}
