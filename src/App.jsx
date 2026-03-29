@@ -3,9 +3,10 @@ import { AuthProvider, useAuth } from './context/AuthContext'
 import AuthPage            from './components/AuthPage'
 import ResetPasswordPage   from './components/ResetPasswordPage'
 import EmailConfirmedPage  from './components/EmailConfirmedPage'
-import Calendar    from './components/Calendar'
-import DayView     from './components/DayView'
-import StatsPanel  from './components/StatsPanel'
+import Calendar            from './components/Calendar'
+import DayView             from './components/DayView'
+import StatsPanel          from './components/StatsPanel'
+import NotificationPrompt, { NotificationToggle } from './components/NotificationPrompt'
 import { useEntries  } from './hooks/useEntries'
 import { useEvents   } from './hooks/useEvents'
 import { useQuestions } from './hooks/useQuestions'
@@ -82,6 +83,7 @@ function DiaryApp() {
                     <p className="text-xs font-medium text-ink truncate">{displayName}</p>
                     <p className="text-xs text-ink-muted truncate">{user.email}</p>
                   </div>
+                  <NotificationToggle userId={user.id} />
                   <button
                     onClick={handleSignOut}
                     disabled={signingOut}
@@ -97,6 +99,7 @@ function DiaryApp() {
       </header>
 
       <main className="max-w-2xl mx-auto px-2">
+        <NotificationPrompt userId={user.id} />
         <Calendar
           entries={entries}
           questionDefs={questions}
