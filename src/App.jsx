@@ -4,18 +4,20 @@ import AuthPage    from './components/AuthPage'
 import Calendar    from './components/Calendar'
 import DayView     from './components/DayView'
 import StatsPanel  from './components/StatsPanel'
-import { useEntries } from './hooks/useEntries'
-import { useEvents  } from './hooks/useEvents'
-import { today }   from './utils/storage'
+import { useEntries  } from './hooks/useEntries'
+import { useEvents   } from './hooks/useEvents'
+import { useQuestions } from './hooks/useQuestions'
+import { today, getDayStatus } from './utils/storage'
 
 // ---- Inner app (solo quando loggato) ----
 function DiaryApp() {
   const { user, displayName, signOut } = useAuth()
   const { entries, updateEntry, getEntry } = useEntries(user.id)
   const { addEvent, removeEvent, eventsForDate } = useEvents(user.id)
+  const { questions, saveQuestions } = useQuestions(user.id)
 
   const [selectedDate, setSelectedDate] = useState(null)
-  const [calView, setCalView] = useState(() => {
+  const [calView] = useState(() => {
     const now = new Date()
     return { year: now.getFullYear(), month: now.getMonth() }
   })
@@ -26,6 +28,11 @@ function DiaryApp() {
     try { await signOut() } finally { setSigningOut(false) }
   }
 
+  // Passa questionDefs al Calendar per calcolare lo stato del giorno correttamente
+  function getStatusForCalendar(entry) {
+    return getDayStatus(entry, questions)
+  }
+
   if (selectedDate) {
     return (
       <div className="min-h-screen bg-paper-100 pb-12">
@@ -33,6 +40,7 @@ function DiaryApp() {
           dateStr={selectedDate}
           entry={getEntry(selectedDate)}
           events={eventsForDate(selectedDate)}
+          questionDefs={questions}
           onDiaryChange={(v)    => updateEntry(selectedDate, { diary: v })}
           onQuestionChange={(q) => updateEntry(selectedDate, { questions: q })}
           onAddEvent={addEvent}
@@ -66,7 +74,6 @@ function DiaryApp() {
                   {displayName.charAt(0)}
                 </span>
               </button>
-              {/* Dropdown */}
               <div className="absolute right-0 top-full mt-2 w-44 hidden group-hover:block z-20">
                 <div className="paper-card rounded-xl shadow-lg py-2 overflow-hidden">
                   <div className="px-3 py-2 border-b border-paper-200">
@@ -90,6 +97,7 @@ function DiaryApp() {
       <main className="max-w-2xl mx-auto px-2">
         <Calendar
           entries={entries}
+          questionDefs={questions}
           eventsForDate={eventsForDate}
           onSelectDay={setSelectedDate}
         />
@@ -98,6 +106,8 @@ function DiaryApp() {
             entries={entries}
             year={calView.year}
             month={calView.month}
+            questionDefs={questions}
+            onSaveQuestions={saveQuestions}
           />
         </div>
       </main>
@@ -105,7 +115,7 @@ function DiaryApp() {
   )
 }
 
-// ---- Root: gestisce loading / auth gate ----
+// ---- Root ----
 function Root() {
   const { user, loading } = useAuth()
 

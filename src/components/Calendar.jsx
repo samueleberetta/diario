@@ -38,7 +38,7 @@ function getFirstDayOfWeek(year, month) {
   return (d + 6) % 7
 }
 
-export default function Calendar({ entries, eventsForDate, onSelectDay }) {
+export default function Calendar({ entries, questionDefs, eventsForDate, onSelectDay }) {
   const now = new Date()
   const [year,  setYear]  = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth())
@@ -104,7 +104,7 @@ export default function Calendar({ entries, eventsForDate, onSelectDay }) {
 
           const dateStr = `${year}-${String(month + 1).padStart(2,'0')}-${String(day).padStart(2,'0')}`
           const entry   = entries[dateStr] || null
-          const status  = getDayStatus(entry)
+          const status  = getDayStatus(entry, questionDefs)
           const events  = eventsForDate(dateStr)
           const isToday = dateStr === todayStr
           const isFuture = dateStr > todayStr

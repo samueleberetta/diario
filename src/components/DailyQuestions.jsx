@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { QUESTIONS } from '../utils/storage'
 
 function QuestionRow({ q, answer, note, onChange, readOnly }) {
   const [localNote, setLocalNote] = useState(note || '')
@@ -9,12 +8,12 @@ function QuestionRow({ q, answer, note, onChange, readOnly }) {
   function select(val) {
     if (readOnly) return
     const newNote = val === 'partial' ? (localNote || '') : ''
-    onChange(q.key, { answer: val, note: newNote })
+    onChange(q.id, { answer: val, note: newNote })
   }
 
   function handleNoteChange(e) {
     setLocalNote(e.target.value)
-    onChange(q.key, { answer: 'partial', note: e.target.value })
+    onChange(q.id, { answer: 'partial', note: e.target.value })
   }
 
   const isPartial = answer === 'partial'
@@ -26,7 +25,7 @@ function QuestionRow({ q, answer, note, onChange, readOnly }) {
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-ink mb-2">{q.label}</p>
           {readOnly ? (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               {answer === 'yes' && (
                 <span className="inline-flex items-center gap-1 text-xs font-medium text-done bg-done/10 px-2.5 py-1 rounded-full">
                   ✓ Sì
@@ -42,34 +41,15 @@ function QuestionRow({ q, answer, note, onChange, readOnly }) {
                   ~ Parziale
                 </span>
               )}
-              {!answer && (
-                <span className="text-xs text-ink-muted italic">—</span>
-              )}
-              {note && (
-                <span className="text-xs text-ink-muted italic">"{note}"</span>
-              )}
+              {!answer && <span className="text-xs text-ink-muted italic">—</span>}
+              {note && <span className="text-xs text-ink-muted italic">"{note}"</span>}
             </div>
           ) : (
             <>
               <div className="flex gap-2">
-                <button
-                  onClick={() => select('yes')}
-                  className={`btn-yes ${answer === 'yes' ? 'active' : ''}`}
-                >
-                  ✓ Sì
-                </button>
-                <button
-                  onClick={() => select('partial')}
-                  className={`btn-partial ${answer === 'partial' ? 'active' : ''}`}
-                >
-                  ~ Parziale
-                </button>
-                <button
-                  onClick={() => select('no')}
-                  className={`btn-no ${answer === 'no' ? 'active' : ''}`}
-                >
-                  ✗ No
-                </button>
+                <button onClick={() => select('yes')}     className={`btn-yes     ${answer === 'yes'     ? 'active' : ''}`}>✓ Sì</button>
+                <button onClick={() => select('partial')} className={`btn-partial ${answer === 'partial' ? 'active' : ''}`}>~ Parziale</button>
+                <button onClick={() => select('no')}      className={`btn-no      ${answer === 'no'      ? 'active' : ''}`}>✗ No</button>
               </div>
               {isPartial && (
                 <textarea
@@ -88,22 +68,37 @@ function QuestionRow({ q, answer, note, onChange, readOnly }) {
   )
 }
 
-export default function DailyQuestions({ questions, onChange, readOnly }) {
-  const qs = questions || {}
+export default function DailyQuestions({ questionDefs, answers, onChange, readOnly }) {
+  const qs = answers || {}
+
+  if (!questionDefs || questionDefs.length === 0) {
+    return (
+      <div className="paper-card rounded-lg overflow-hidden">
+        <div className="flex items-center gap-2 px-4 py-3 border-b border-paper-200">
+          <span className="text-base">❓</span>
+          <span className="font-serif text-base font-semibold text-ink">Obiettivi del giorno</span>
+        </div>
+        <p className="text-sm text-ink-muted italic text-center py-6">
+          Nessun obiettivo configurato.<br/>
+          <span className="text-xs">Aggiungili dalle statistiche del mese.</span>
+        </p>
+      </div>
+    )
+  }
 
   return (
     <div className="paper-card rounded-lg overflow-hidden">
       <div className="flex items-center gap-2 px-4 py-3 border-b border-paper-200">
         <span className="text-base">❓</span>
-        <span className="font-serif text-base font-semibold text-ink">Domande del giorno</span>
+        <span className="font-serif text-base font-semibold text-ink">Obiettivi del giorno</span>
       </div>
       <div className="px-4">
-        {QUESTIONS.map(q => (
+        {questionDefs.map(q => (
           <QuestionRow
-            key={q.key}
+            key={q.id}
             q={q}
-            answer={qs[q.key]?.answer}
-            note={qs[q.key]?.note}
+            answer={qs[q.id]?.answer}
+            note={qs[q.id]?.note}
             onChange={onChange}
             readOnly={readOnly}
           />

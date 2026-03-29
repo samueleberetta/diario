@@ -68,11 +68,13 @@ export const QUESTIONS = [
 
 /**
  * Returns 'done' | 'partial' | 'missed' | 'empty'
+ * questionDefs: array of { id, emoji, label } — se omesso usa QUESTIONS di default
  */
-export function getDayStatus(entry) {
+export function getDayStatus(entry, questionDefs) {
   if (!entry) return 'empty'
   const qs = entry.questions || {}
-  const answers = QUESTIONS.map(q => qs[q.key]?.answer).filter(Boolean)
+  const defs = questionDefs && questionDefs.length > 0 ? questionDefs : QUESTIONS.map(q => ({ id: q.key }))
+  const answers = defs.map(q => qs[q.id]?.answer).filter(Boolean)
   if (answers.length === 0) return entry.diary ? 'partial' : 'empty'
   if (answers.every(a => a === 'yes')) return 'done'
   if (answers.some(a => a === 'no')) return 'missed'

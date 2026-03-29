@@ -1,6 +1,6 @@
-import DiaryEditor from './DiaryEditor'
+import DiaryEditor    from './DiaryEditor'
 import DailyQuestions from './DailyQuestions'
-import EventsSection from './EventsSection'
+import EventsSection  from './EventsSection'
 import { parseDate, today } from '../utils/storage'
 
 const MONTHS_IT = [
@@ -11,27 +11,27 @@ const DAYS_IT = ['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerd
 
 function formatDateLabel(dateStr) {
   const d = parseDate(dateStr)
-  const dayName = DAYS_IT[d.getDay()]
-  return `${dayName}, ${d.getDate()} ${MONTHS_IT[d.getMonth()]} ${d.getFullYear()}`
+  return `${DAYS_IT[d.getDay()]}, ${d.getDate()} ${MONTHS_IT[d.getMonth()]} ${d.getFullYear()}`
 }
 
-export default function DayView({ dateStr, entry, events, onDiaryChange, onQuestionChange, onAddEvent, onRemoveEvent, onBack }) {
+export default function DayView({
+  dateStr, entry, events, questionDefs,
+  onDiaryChange, onQuestionChange, onAddEvent, onRemoveEvent, onBack,
+}) {
   const todayStr = today()
-  const isPast   = dateStr < todayStr
   const isToday  = dateStr === todayStr
+  const isPast   = dateStr < todayStr
   const isFuture = dateStr > todayStr
 
-  const questions = entry?.questions || {}
-  const diary     = entry?.diary     || ''
+  const answers = entry?.questions || {}
+  const diary   = entry?.diary     || ''
 
-  function handleQuestionChange(key, val) {
-    const updated = { ...questions, [key]: val }
-    onQuestionChange(updated)
+  function handleQuestionChange(id, val) {
+    onQuestionChange({ ...answers, [id]: val })
   }
 
   return (
     <div className="w-full max-w-2xl mx-auto px-3 py-6">
-      {/* Back button + Date header */}
       <div className="flex items-center gap-3 mb-6">
         <button
           onClick={onBack}
@@ -52,16 +52,16 @@ export default function DayView({ dateStr, entry, events, onDiaryChange, onQuest
         </div>
       </div>
 
-      {/* Content stack */}
       <div className="flex flex-col gap-4">
         <DiaryEditor
           value={diary}
-          onChange={(v) => onDiaryChange(v)}
+          onChange={onDiaryChange}
           readOnly={false}
         />
 
         <DailyQuestions
-          questions={questions}
+          questionDefs={questionDefs}
+          answers={answers}
           onChange={handleQuestionChange}
           readOnly={false}
         />
