@@ -1,0 +1,97 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background-color: #f9f3e3;
+    color: #1a1a1a;
+    font-family: 'Inter', system-ui, sans-serif;
+    min-height: 100%;
+  }
+
+  #root {
+    min-height: 100svh;
+  }
+}
+
+@layer components {
+  .btn-yes {
+    @apply flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-150
+           border-2 border-transparent;
+    background: #eaf4ee;
+    color: #2d6b3e;
+    border-color: #b8ddc4;
+  }
+  .btn-yes:hover,
+  .btn-yes.active {
+    background: #4a7c59;
+    color: #fff;
+    border-color: #4a7c59;
+  }
+
+  .btn-no {
+    @apply flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-150
+           border-2 border-transparent;
+    background: #f9eaea;
+    color: #7a2d2d;
+    border-color: #e8c0c0;
+  }
+  .btn-no:hover,
+  .btn-no.active {
+    background: #b04040;
+    color: #fff;
+    border-color: #b04040;
+  }
+
+  .btn-partial {
+    @apply flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-150
+           border-2 border-transparent;
+    background: #fef3e2;
+    color: #7a4f1a;
+    border-color: #f0d4a0;
+  }
+  .btn-partial:hover,
+  .btn-partial.active {
+    background: #c07a2a;
+    color: #fff;
+    border-color: #c07a2a;
+  }
+
+  .paper-card {
+    background: #fffdf7;
+    border: 1px solid #e4d4a8;
+    border-radius: 4px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+  }
+
+  .journal-textarea {
+    background: transparent;
+    resize: none;
+    outline: none;
+    width: 100%;
+    line-height: 1.9;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.05rem;
+    color: #1a1a1a;
+    caret-color: #4a7c59;
+  }
+
+  .lined-paper {
+    background-image: repeating-linear-gradient(
+      transparent,
+      transparent 33px,
+      #e8dfc8 33px,
+      #e8dfc8 34px
+    );
+    background-position: 0 8px;
+  }
+}
