@@ -1,17 +1,59 @@
-import { useState, useCallback } from 'react'
-import { getAllEntries, getEntry, saveEntry } from '../utils/storage'
+import { useState, useCallback, useEffect } from 'react'
+import { supabase } from '../lib/supabase'
 
-export function useEntries() {
-  const [entries, setEntries] = useState(() => getAllEntries())
+export function useEntries(userId) {
+  const [entries, setEntries] = useState({})   // { 'YYYY-MM-DD': entry }
+  const [loading, setLoading] = useState(true)
 
-  const refresh = useCallback(() => {
-    setEntries(getAllEntries())
-  }, [])
+  // Carica tutti gli entries del mese visibile (e vicini) al mount
+  useEffect(() => {
+    if (!userId) return
+    fetchAll()
+  }, [userId])
 
-  const updateEntry = useCallback((date, data) => {
-    saveEntry(date, data)
-    setEntries(getAllEntries())
-  }, [])
+  async function fetchAll() {
+    setLoading(true)
+    const { data, error } = await supabase
+      .from('entries')
+      .select('*')
+      .eq('user_id', userId)
+    if (!error && data) {
+      const map = {}
+      data.forEach(row => {
+        map[row.date] = {
+          date:      row.date,
+          diary:     row.diary     || '',
+          questions: row.questions || {},
+        }
+      })
+      setEntries(map)
+    }
+    setLoading(false)
+  }
 
-  return { entries, updateEntry, refresh, getEntry: (d) => entries[d] || null }
+  const updateEntry = useCallback(async (date, data) => {
+    // Ottimistic update locale immediato
+    setEntries(prev => ({
+      ...prev,
+      [date]: { ...prev[date], ...data, date },
+    }))
+
+    // Upsert su Supabase
+    const { error } = await supabase
+      .from('entries')
+      .upsert(
+        { user_id: userId, date, ...data },
+        { onConflict: 'user_id,date' }
+      )
+
+    if (error) {
+      console.error('Errore salvataggio entry:', error.message)
+      // In caso di errore, ricarica dal server
+      fetchAll()
+    }
+  }, [userId])
+
+  const getEntry = useCallback((date) => entries[date] || null, [entries])
+
+  return { entries, loading, updateEntry, getEntry }
 }
