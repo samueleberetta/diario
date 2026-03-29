@@ -4,25 +4,26 @@ import { supabase } from '../lib/supabase'
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
-  const [user,    setUser]    = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [user,        setUser]        = useState(null)
+  const [loading,     setLoading]     = useState(true)
+  const [isRecovering, setIsRecovering] = useState(false)
 
   useEffect(() => {
-    // Sessione corrente al mount
     supabase.auth.getSession()
       .then(({ data: { session } }) => {
         setUser(session?.user ?? null)
       })
-      .catch(() => {
-        setUser(null)
-      })
-      .finally(() => {
-        setLoading(false)
-      })
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false))
 
-    // Ascolta cambiamenti di stato auth (login / logout / refresh token)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null)
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsRecovering(true)
+      }
+      if (event === 'USER_UPDATED') {
+        setIsRecovering(false)
+      }
     })
 
     return () => subscription.unsubscribe()
@@ -32,11 +33,7 @@ export function AuthProvider({ children }) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        data: { display_name: displayName },
-        // Disabilita email di conferma: in Supabase Dashboard → Auth → Settings
-        // toglie "Enable email confirmations"
-      },
+      options: { data: { display_name: displayName } },
     })
     if (error) throw error
     return data
@@ -53,10 +50,26 @@ export function AuthProvider({ children }) {
     if (error) throw error
   }
 
+  async function forgotPassword(email) {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin,
+    })
+    if (error) throw error
+  }
+
+  async function updatePassword(newPassword) {
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    if (error) throw error
+    setIsRecovering(false)
+  }
+
   const displayName = user?.user_metadata?.display_name || user?.email?.split('@')[0] || 'Utente'
 
   return (
-    <AuthContext.Provider value={{ user, loading, displayName, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{
+      user, loading, displayName, isRecovering,
+      signUp, signIn, signOut, forgotPassword, updatePassword,
+    }}>
       {children}
     </AuthContext.Provider>
   )

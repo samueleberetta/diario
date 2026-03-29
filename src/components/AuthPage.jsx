@@ -2,6 +2,82 @@ import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useInstallPrompt } from '../hooks/useInstallPrompt'
 
+function ForgotPasswordForm({ onBack }) {
+  const { forgotPassword } = useAuth()
+  const [email,   setEmail]   = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error,   setError]   = useState('')
+  const [sent,    setSent]    = useState(false)
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    setError('')
+    if (!email.trim()) { setError('Inserisci la tua email.'); return }
+    setLoading(true)
+    try {
+      await forgotPassword(email.trim())
+      setSent(true)
+    } catch (err) {
+      setError(err.message || 'Errore durante l\'invio. Riprova.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="paper-card rounded-2xl w-full max-w-sm p-6 shadow-lg">
+      {sent ? (
+        <div className="text-center py-4">
+          <div className="text-4xl mb-3">📬</div>
+          <h2 className="font-serif text-lg font-bold text-ink mb-2">Email inviata</h2>
+          <p className="text-sm text-ink-muted mb-4">
+            Controlla la tua casella di posta. Ti abbiamo inviato un link per reimpostare la password.
+          </p>
+          <button onClick={onBack} className="text-sm text-ink-muted underline underline-offset-2 hover:text-ink">
+            Torna al login
+          </button>
+        </div>
+      ) : (
+        <>
+          <button onClick={onBack} className="flex items-center gap-1 text-xs text-ink-muted hover:text-ink mb-4 transition-colors">
+            ← Torna al login
+          </button>
+          <h2 className="font-serif text-lg font-bold text-ink mb-1">Password dimenticata</h2>
+          <p className="text-xs text-ink-muted mb-5">
+            Inserisci la tua email e ti mandiamo un link per reimpostare la password.
+          </p>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-3" noValidate>
+            <div>
+              <label className="block text-xs font-medium text-ink-muted mb-1">Email</label>
+              <input
+                type="email"
+                autoFocus
+                autoComplete="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="la-tua@email.com"
+                className="w-full border border-paper-300 rounded-lg px-3 py-2 text-sm bg-paper-50 outline-none focus:ring-2 focus:ring-ink/20 text-ink"
+              />
+            </div>
+            {error && (
+              <div className="text-xs text-missed bg-missed/10 border border-missed/20 rounded-lg px-3 py-2">
+                {error}
+              </div>
+            )}
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-1 w-full py-2.5 rounded-xl bg-ink text-white text-sm font-medium hover:bg-ink-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Invio in corso…' : 'Invia link di reset'}
+            </button>
+          </form>
+        </>
+      )}
+    </div>
+  )
+}
+
 function InstallBanner() {
   const { prompt, isInstalled, triggerInstall, showIOSInstructions } = useInstallPrompt()
   const [showIOS, setShowIOS] = useState(false)
@@ -77,6 +153,7 @@ export default function AuthPage() {
   const { signIn, signUp } = useAuth()
 
   const [mode,        setMode]        = useState('login')
+  const [showForgot,  setShowForgot]  = useState(false)
   const [email,       setEmail]       = useState('')
   const [password,    setPassword]    = useState('')
   const [displayName, setDisplayName] = useState('')
@@ -149,6 +226,18 @@ export default function AuthPage() {
     setConfirmPwd('')
   }
 
+  if (showForgot) {
+    return (
+      <div className="min-h-screen bg-paper-100 flex flex-col items-center justify-center px-4 gap-4">
+        <div className="mb-2 text-center">
+          <div className="text-5xl mb-3">📔</div>
+          <h1 className="font-serif text-3xl font-bold text-ink tracking-wide">Diario</h1>
+        </div>
+        <ForgotPasswordForm onBack={() => setShowForgot(false)} />
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-paper-100 flex flex-col items-center justify-center px-4 gap-4">
       {/* Logo */}
@@ -210,7 +299,18 @@ export default function AuthPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-ink-muted mb-1">Password</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs font-medium text-ink-muted">Password</label>
+              {mode === 'login' && (
+                <button
+                  type="button"
+                  onClick={() => setShowForgot(true)}
+                  className="text-xs text-ink-muted hover:text-ink underline underline-offset-2 transition-colors"
+                >
+                  Password dimenticata?
+                </button>
+              )}
+            </div>
             <input
               type="password"
               autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
