@@ -2,10 +2,8 @@ import { useState, useCallback, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 
 export const DEFAULT_QUESTIONS = [
-  { id: 'feeling',  emoji: '😊', label: 'Come stai oggi?' },
-  { id: 'workout',  emoji: '💪', label: 'Ti sei allenato oggi?' },
-  { id: 'japanese', emoji: '🇯🇵', label: 'Hai studiato giapponese oggi?' },
-  { id: 'income',   emoji: '💶', label: 'Hai lavorato per raggiungere 2000€/mese?' },
+  { id: 'workout', emoji: '💪', label: 'Ti sei allenato oggi?' },
+  { id: 'feeling', emoji: '😊', label: 'Stai bene oggi?' },
 ]
 
 export function useQuestions(userId) {
