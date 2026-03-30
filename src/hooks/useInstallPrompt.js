@@ -31,9 +31,9 @@ export function useInstallPrompt() {
   const isAndroid = /android/i.test(ua)
   const isChrome  = /chrome/i.test(ua) && !/edg/i.test(ua)
 
-  const showIOSInstructions     = isIOS && isSafari  && !isInstalled
-  // Mostra istruzioni manuali Android quando il prompt nativo non è (ancora) disponibile
-  const showAndroidInstructions = isAndroid && isChrome && !isInstalled && !prompt
+  const showIOSInstructions     = isIOS && isSafari && !isInstalled
+  // Mostra sempre il banner Android (con o senza prompt nativo)
+  const showAndroidInstructions = isAndroid && isChrome && !isInstalled
 
   return { prompt, isInstalled, triggerInstall, showIOSInstructions, showAndroidInstructions }
 }

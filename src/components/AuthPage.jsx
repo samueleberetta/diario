@@ -86,24 +86,7 @@ function InstallBanner() {
 
   if (isInstalled || installed) return null
 
-  // Android/Chrome: prompt nativo disponibile
-  if (prompt) {
-    return (
-      <button
-        onClick={async () => { const ok = await triggerInstall(); if (ok) setInstalled(true) }}
-        className="flex items-center gap-2 w-full max-w-sm px-4 py-3 rounded-2xl border border-paper-300 bg-white/70 hover:bg-white transition-colors shadow-sm"
-      >
-        <span className="text-xl">📲</span>
-        <div className="text-left flex-1">
-          <p className="text-sm font-medium text-ink">Scarica l'app</p>
-          <p className="text-xs text-ink-muted">Installa sul tuo dispositivo</p>
-        </div>
-        <span className="text-ink-muted text-xs border border-paper-300 rounded-lg px-2 py-1">Installa</span>
-      </button>
-    )
-  }
-
-  // Android/Chrome: prompt non ancora disponibile → istruzioni manuali
+  // Android/Chrome: mostra sempre il banner con tutorial espandibile
   if (showAndroidInstructions) {
     return (
       <div className="w-full max-w-sm">
@@ -121,6 +104,14 @@ function InstallBanner() {
 
         {showAndroid && (
           <div className="mt-2 bg-white border border-paper-300 rounded-2xl px-4 py-4 shadow-sm space-y-3">
+            {prompt && (
+              <button
+                onClick={async () => { const ok = await triggerInstall(); if (ok) setInstalled(true) }}
+                className="w-full py-2 rounded-xl bg-ink text-white text-sm font-medium hover:bg-ink-light transition-colors"
+              >
+                Installa subito →
+              </button>
+            )}
             <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider">Come installare su Android</p>
             {[
               { n: '1', icon: '⋮',  text: 'Tocca i tre puntini in alto a destra in Chrome' },
