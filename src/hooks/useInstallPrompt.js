@@ -27,13 +27,21 @@ export function useInstallPrompt() {
 
   const ua = navigator.userAgent
   const isIOS     = /iphone|ipad|ipod/i.test(ua)
-  const isSafari  = /^((?!chrome|android).)*safari/i.test(ua)
   const isAndroid = /android/i.test(ua)
-  const isChrome  = /chrome/i.test(ua) && !/edg/i.test(ua)
+  const isChrome  = /chrome/i.test(ua) && !/edg/i.test(ua) && !/opr/i.test(ua)
+  const isFirefox = /firefox/i.test(ua)
+  const isSamsung = /samsungbrowser/i.test(ua)
+  // Safari: ha "Safari" nell'UA ma non "Chrome" né "Android"
+  const isSafari  = /safari/i.test(ua) && !isChrome && !isAndroid && !isFirefox
 
-  const showIOSInstructions     = isIOS && isSafari && !isInstalled
-  // Mostra sempre il banner Android (con o senza prompt nativo)
-  const showAndroidInstructions = isAndroid && isChrome && !isInstalled
+  let platform
+  if      (isIOS && isSafari)      platform = 'ios-safari'
+  else if (isIOS)                  platform = 'ios-chrome'   // Chrome/Firefox su iOS usano WebKit, serve Safari
+  else if (isAndroid && isSamsung) platform = 'android-samsung'
+  else if (isAndroid && isFirefox) platform = 'android-firefox'
+  else if (isAndroid)              platform = 'android-chrome' // Chrome e altri su Android
+  else if (prompt)                 platform = 'desktop-prompt'
+  else                             platform = 'unknown'
 
-  return { prompt, isInstalled, triggerInstall, showIOSInstructions, showAndroidInstructions }
+  return { prompt, isInstalled, triggerInstall, platform }
 }

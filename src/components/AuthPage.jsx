@@ -78,105 +78,120 @@ function ForgotPasswordForm({ onBack }) {
   )
 }
 
+const TUTORIALS = {
+  'ios-safari': {
+    title: 'Come installare su iPhone / iPad',
+    steps: [
+      { icon: '⬆️', text: 'Tocca il tasto Condividi in basso (Safari)' },
+      { icon: '➕', text: 'Scorri e tocca "Aggiungi a schermata Home"' },
+      { icon: '✅', text: 'Tocca "Aggiungi" in alto a destra' },
+    ],
+  },
+  'ios-chrome': {
+    title: 'Come installare su iPhone',
+    steps: [
+      { icon: '🔗', text: 'Apri questa pagina in Safari (Chrome su iOS non supporta l\'installazione diretta)' },
+      { icon: '⬆️', text: 'Tocca il tasto Condividi in basso' },
+      { icon: '➕', text: 'Tocca "Aggiungi a schermata Home" → "Aggiungi"' },
+    ],
+  },
+  'android-chrome': {
+    title: 'Come installare su Android',
+    steps: [
+      { icon: '⋮', text: 'Tocca i tre puntini in alto a destra in Chrome' },
+      { icon: '➕', text: 'Tocca "Aggiungi a schermata Home" o "Installa app"' },
+      { icon: '✅', text: 'Conferma toccando "Aggiungi"' },
+    ],
+  },
+  'android-samsung': {
+    title: 'Come installare su Samsung Internet',
+    steps: [
+      { icon: '☰', text: 'Tocca il menu (tre linee) in basso a destra' },
+      { icon: '➕', text: 'Tocca "Aggiungi pagina a" → "Schermata Home"' },
+      { icon: '✅', text: 'Tocca "Aggiungi"' },
+    ],
+  },
+  'android-firefox': {
+    title: 'Come installare su Android',
+    steps: [
+      { icon: '⋮', text: 'Tocca i tre puntini in alto a destra in Firefox' },
+      { icon: '➕', text: 'Tocca "Installa"' },
+      { icon: '✅', text: 'Conferma l\'installazione' },
+    ],
+  },
+}
+
 function InstallBanner() {
-  const { prompt, isInstalled, triggerInstall, showIOSInstructions, showAndroidInstructions } = useInstallPrompt()
-  const [showIOS,     setShowIOS]     = useState(false)
-  const [showAndroid, setShowAndroid] = useState(false)
-  const [installed,   setInstalled]   = useState(false)
+  const { prompt, isInstalled, triggerInstall, platform } = useInstallPrompt()
+  const [open,      setOpen]      = useState(false)
+  const [installed, setInstalled] = useState(false)
 
   if (isInstalled || installed) return null
 
-  // Android/Chrome: mostra sempre il banner con tutorial espandibile
-  if (showAndroidInstructions) {
-    return (
-      <div className="w-full max-w-sm">
-        <button
-          onClick={() => setShowAndroid(s => !s)}
-          className="flex items-center gap-2 w-full px-4 py-3 rounded-2xl border border-paper-300 bg-white/70 hover:bg-white transition-colors shadow-sm"
-        >
-          <span className="text-xl">📲</span>
-          <div className="text-left flex-1">
-            <p className="text-sm font-medium text-ink">Scarica l'app</p>
-            <p className="text-xs text-ink-muted">Aggiungi alla schermata Home</p>
-          </div>
-          <span className="text-ink-muted text-lg">{showAndroid ? '▲' : '▼'}</span>
-        </button>
+  // Desktop senza prompt nativo: nascondi
+  if (platform === 'unknown') return null
 
-        {showAndroid && (
-          <div className="mt-2 bg-white border border-paper-300 rounded-2xl px-4 py-4 shadow-sm space-y-3">
-            {prompt && (
-              <button
-                onClick={async () => { const ok = await triggerInstall(); if (ok) setInstalled(true) }}
-                className="w-full py-2 rounded-xl bg-ink text-white text-sm font-medium hover:bg-ink-light transition-colors"
-              >
-                Installa subito →
-              </button>
-            )}
-            <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider">Come installare su Android</p>
-            {[
-              { n: '1', icon: '⋮',  text: 'Tocca i tre puntini in alto a destra in Chrome' },
-              { n: '2', icon: '➕', text: 'Tocca "Aggiungi a schermata Home" o "Installa app"' },
-              { n: '3', icon: '✅', text: 'Conferma toccando "Aggiungi"' },
-            ].map(({ n, icon, text }) => (
-              <div key={n} className="flex items-start gap-3">
-                <span className="w-5 h-5 rounded-full bg-ink text-white text-xs flex items-center justify-center shrink-0 mt-0.5">{n}</span>
-                <div className="flex items-start gap-1.5">
-                  <span className="text-lg leading-none">{icon}</span>
-                  <p className="text-sm text-ink">{text}</p>
-                </div>
-              </div>
-            ))}
-            <p className="text-xs text-ink-muted pt-1 border-t border-paper-200">
-              L'app apparirà nella home come un'icona normale, senza barra del browser.
-            </p>
-          </div>
-        )}
-      </div>
+  // Desktop con prompt nativo: bottone diretto
+  if (platform === 'desktop-prompt') {
+    return (
+      <button
+        onClick={async () => { const ok = await triggerInstall(); if (ok) setInstalled(true) }}
+        className="flex items-center gap-2 w-full max-w-sm px-4 py-3 rounded-2xl border border-paper-300 bg-white/70 hover:bg-white transition-colors shadow-sm"
+      >
+        <span className="text-xl">📲</span>
+        <div className="text-left flex-1">
+          <p className="text-sm font-medium text-ink">Scarica l'app</p>
+          <p className="text-xs text-ink-muted">Installa sul tuo dispositivo</p>
+        </div>
+        <span className="text-ink-muted text-xs border border-paper-300 rounded-lg px-2 py-1">Installa</span>
+      </button>
     )
   }
 
-  // iPhone/Safari: istruzioni manuali
-  if (showIOSInstructions) {
-    return (
-      <div className="w-full max-w-sm">
-        <button
-          onClick={() => setShowIOS(s => !s)}
-          className="flex items-center gap-2 w-full px-4 py-3 rounded-2xl border border-paper-300 bg-white/70 hover:bg-white transition-colors shadow-sm"
-        >
-          <span className="text-xl">📲</span>
-          <div className="text-left flex-1">
-            <p className="text-sm font-medium text-ink">Scarica l'app</p>
-            <p className="text-xs text-ink-muted">Aggiungi alla schermata Home</p>
-          </div>
-          <span className="text-ink-muted text-lg">{showIOS ? '▲' : '▼'}</span>
-        </button>
+  const tutorial = TUTORIALS[platform]
+  if (!tutorial) return null
 
-        {showIOS && (
-          <div className="mt-2 bg-white border border-paper-300 rounded-2xl px-4 py-4 shadow-sm space-y-3">
-            <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider">Come installare su iPhone</p>
-            {[
-              { n: '1', icon: '⬆️', text: 'Tocca il tasto Condividi in fondo allo schermo' },
-              { n: '2', icon: '➕', text: 'Scorri e tocca "Aggiungi a schermata Home"' },
-              { n: '3', icon: '✅', text: 'Tocca "Aggiungi" in alto a destra' },
-            ].map(({ n, icon, text }) => (
-              <div key={n} className="flex items-start gap-3">
-                <span className="w-5 h-5 rounded-full bg-ink text-white text-xs flex items-center justify-center shrink-0 mt-0.5">{n}</span>
-                <div className="flex items-start gap-1.5">
-                  <span>{icon}</span>
-                  <p className="text-sm text-ink">{text}</p>
-                </div>
+  return (
+    <div className="w-full max-w-sm">
+      <button
+        onClick={() => setOpen(s => !s)}
+        className="flex items-center gap-2 w-full px-4 py-3 rounded-2xl border border-paper-300 bg-white/70 hover:bg-white transition-colors shadow-sm"
+      >
+        <span className="text-xl">📲</span>
+        <div className="text-left flex-1">
+          <p className="text-sm font-medium text-ink">Scarica l'app</p>
+          <p className="text-xs text-ink-muted">Aggiungi alla schermata Home</p>
+        </div>
+        <span className="text-ink-muted text-lg">{open ? '▲' : '▼'}</span>
+      </button>
+
+      {open && (
+        <div className="mt-2 bg-white border border-paper-300 rounded-2xl px-4 py-4 shadow-sm space-y-3">
+          {prompt && platform === 'android-chrome' && (
+            <button
+              onClick={async () => { const ok = await triggerInstall(); if (ok) setInstalled(true) }}
+              className="w-full py-2 rounded-xl bg-ink text-white text-sm font-medium hover:bg-ink-light transition-colors"
+            >
+              Installa subito →
+            </button>
+          )}
+          <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider">{tutorial.title}</p>
+          {tutorial.steps.map(({ icon, text }, i) => (
+            <div key={i} className="flex items-start gap-3">
+              <span className="w-5 h-5 rounded-full bg-ink text-white text-xs flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+              <div className="flex items-start gap-1.5">
+                <span className="text-lg leading-none">{icon}</span>
+                <p className="text-sm text-ink">{text}</p>
               </div>
-            ))}
-            <p className="text-xs text-ink-muted pt-1 border-t border-paper-200">
-              L'app apparirà nella home come un'icona normale, senza barra del browser.
-            </p>
-          </div>
-        )}
-      </div>
-    )
-  }
-
-  return null
+            </div>
+          ))}
+          <p className="text-xs text-ink-muted pt-1 border-t border-paper-200">
+            L'app apparirà nella home come un'icona normale, senza barra del browser.
+          </p>
+        </div>
+      )}
+    </div>
+  )
 }
 
 export default function AuthPage() {
