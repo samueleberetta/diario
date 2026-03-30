@@ -164,7 +164,6 @@ export default function AuthPage() {
 
   function reset() {
     setError('')
-    setSuccess('')
   }
 
   async function handleSubmit(e) {
