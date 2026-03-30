@@ -238,7 +238,7 @@ export default function AuthPage() {
         setCheckEmail(true)
       }
     } catch (err) {
-      const msg = err.message || ''
+      const msg = typeof err.message === 'string' ? err.message : ''
       if (msg.includes('Invalid login credentials'))
         setError('Email o password errati.')
       else if (msg.includes('User already registered') || msg.includes('already been registered'))
@@ -247,6 +247,8 @@ export default function AuthPage() {
         setError('La password deve avere almeno 6 caratteri.')
       else if (msg.includes('Unable to validate email'))
         setError('Inserisci un indirizzo email valido.')
+      else if (msg.includes('sending') || msg.includes('email') || msg === '{}' || msg === '')
+        setError('Errore nell\'invio dell\'email di conferma. Controlla le impostazioni SMTP in Supabase.')
       else
         setError(msg || 'Errore sconosciuto. Riprova.')
     } finally {
