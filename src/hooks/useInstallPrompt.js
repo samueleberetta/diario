@@ -1,17 +1,14 @@
 import { useState, useEffect } from 'react'
 
 export function useInstallPrompt() {
-  const [prompt, setPrompt] = useState(null)
+  const [prompt,      setPrompt]      = useState(null)
   const [isInstalled, setIsInstalled] = useState(false)
 
   useEffect(() => {
-    // Già installata come PWA
     if (window.matchMedia('(display-mode: standalone)').matches) {
       setIsInstalled(true)
       return
     }
-
-    // Android/Chrome: cattura l'evento nativo
     function handler(e) {
       e.preventDefault()
       setPrompt(e)
@@ -28,9 +25,15 @@ export function useInstallPrompt() {
     return outcome === 'accepted'
   }
 
-  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent)
-  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
-  const showIOSInstructions = isIOS && isSafari && !isInstalled
+  const ua = navigator.userAgent
+  const isIOS     = /iphone|ipad|ipod/i.test(ua)
+  const isSafari  = /^((?!chrome|android).)*safari/i.test(ua)
+  const isAndroid = /android/i.test(ua)
+  const isChrome  = /chrome/i.test(ua) && !/edg/i.test(ua)
 
-  return { prompt, isInstalled, triggerInstall, showIOSInstructions }
+  const showIOSInstructions     = isIOS && isSafari  && !isInstalled
+  // Mostra istruzioni manuali Android quando il prompt nativo non è (ancora) disponibile
+  const showAndroidInstructions = isAndroid && isChrome && !isInstalled && !prompt
+
+  return { prompt, isInstalled, triggerInstall, showIOSInstructions, showAndroidInstructions }
 }

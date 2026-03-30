@@ -79,20 +79,18 @@ function ForgotPasswordForm({ onBack }) {
 }
 
 function InstallBanner() {
-  const { prompt, isInstalled, triggerInstall, showIOSInstructions } = useInstallPrompt()
-  const [showIOS, setShowIOS] = useState(false)
-  const [installed, setInstalled] = useState(false)
+  const { prompt, isInstalled, triggerInstall, showIOSInstructions, showAndroidInstructions } = useInstallPrompt()
+  const [showIOS,     setShowIOS]     = useState(false)
+  const [showAndroid, setShowAndroid] = useState(false)
+  const [installed,   setInstalled]   = useState(false)
 
   if (isInstalled || installed) return null
 
-  // Android/Chrome: bottone che triggera il prompt nativo
+  // Android/Chrome: prompt nativo disponibile
   if (prompt) {
     return (
       <button
-        onClick={async () => {
-          const ok = await triggerInstall()
-          if (ok) setInstalled(true)
-        }}
+        onClick={async () => { const ok = await triggerInstall(); if (ok) setInstalled(true) }}
         className="flex items-center gap-2 w-full max-w-sm px-4 py-3 rounded-2xl border border-paper-300 bg-white/70 hover:bg-white transition-colors shadow-sm"
       >
         <span className="text-xl">📲</span>
@@ -105,7 +103,48 @@ function InstallBanner() {
     )
   }
 
-  // iPhone/Safari: mostra istruzioni manuali
+  // Android/Chrome: prompt non ancora disponibile → istruzioni manuali
+  if (showAndroidInstructions) {
+    return (
+      <div className="w-full max-w-sm">
+        <button
+          onClick={() => setShowAndroid(s => !s)}
+          className="flex items-center gap-2 w-full px-4 py-3 rounded-2xl border border-paper-300 bg-white/70 hover:bg-white transition-colors shadow-sm"
+        >
+          <span className="text-xl">📲</span>
+          <div className="text-left flex-1">
+            <p className="text-sm font-medium text-ink">Scarica l'app</p>
+            <p className="text-xs text-ink-muted">Aggiungi alla schermata Home</p>
+          </div>
+          <span className="text-ink-muted text-lg">{showAndroid ? '▲' : '▼'}</span>
+        </button>
+
+        {showAndroid && (
+          <div className="mt-2 bg-white border border-paper-300 rounded-2xl px-4 py-4 shadow-sm space-y-3">
+            <p className="text-xs font-semibold text-ink-muted uppercase tracking-wider">Come installare su Android</p>
+            {[
+              { n: '1', icon: '⋮',  text: 'Tocca i tre puntini in alto a destra in Chrome' },
+              { n: '2', icon: '➕', text: 'Tocca "Aggiungi a schermata Home" o "Installa app"' },
+              { n: '3', icon: '✅', text: 'Conferma toccando "Aggiungi"' },
+            ].map(({ n, icon, text }) => (
+              <div key={n} className="flex items-start gap-3">
+                <span className="w-5 h-5 rounded-full bg-ink text-white text-xs flex items-center justify-center shrink-0 mt-0.5">{n}</span>
+                <div className="flex items-start gap-1.5">
+                  <span className="text-lg leading-none">{icon}</span>
+                  <p className="text-sm text-ink">{text}</p>
+                </div>
+              </div>
+            ))}
+            <p className="text-xs text-ink-muted pt-1 border-t border-paper-200">
+              L'app apparirà nella home come un'icona normale, senza barra del browser.
+            </p>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // iPhone/Safari: istruzioni manuali
   if (showIOSInstructions) {
     return (
       <div className="w-full max-w-sm">
