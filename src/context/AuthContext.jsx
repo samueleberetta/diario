@@ -6,29 +6,32 @@ const AuthContext = createContext(null)
 export function AuthProvider({ children }) {
   const [user,         setUser]         = useState(null)
   const [loading,      setLoading]      = useState(true)
-  const [isRecovering, setIsRecovering] = useState(false)
-  // Rilevato sincronicamente prima che Supabase pulisca l'hash
+  // Rilevati sincronicamente dall'URL prima che Supabase pulisca l'hash
+  const [isRecovering, setIsRecovering] = useState(() => {
+    const params = new URLSearchParams(window.location.hash.replace('#', ''))
+    return params.get('type') === 'recovery'
+  })
   const [justConfirmed, setJustConfirmed] = useState(() => {
     const params = new URLSearchParams(window.location.hash.replace('#', ''))
     return params.get('type') === 'signup'
   })
 
   useEffect(() => {
-    supabase.auth.getSession()
-      .then(({ data: { session } }) => {
-        setUser(session?.user ?? null)
-      })
-      .catch(() => setUser(null))
-      .finally(() => setLoading(false))
+    // Non usare getSession() direttamente: si risolve prima che i token nell'URL
+    // vengano processati, causando una schermata vuota al primo caricamento.
+    // onAuthStateChange emette INITIAL_SESSION dopo aver processato i token nell'URL.
+    let initialized = false
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null)
-      if (event === 'PASSWORD_RECOVERY') {
-        setIsRecovering(true)
+
+      if (!initialized) {
+        initialized = true
+        setLoading(false)
       }
-      if (event === 'USER_UPDATED') {
-        setIsRecovering(false)
-      }
+
+      if (event === 'PASSWORD_RECOVERY') setIsRecovering(true)
+      if (event === 'USER_UPDATED')      setIsRecovering(false)
     })
 
     return () => subscription.unsubscribe()
