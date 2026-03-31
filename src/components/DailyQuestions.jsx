@@ -7,6 +7,11 @@ function QuestionRow({ q, answer, note, onChange, readOnly }) {
 
   function select(val) {
     if (readOnly) return
+    // Ri-cliccare lo stesso valore lo de-seleziona
+    if (answer === val) {
+      onChange(q.id, { answer: null, note: '' })
+      return
+    }
     const newNote = val === 'partial' ? (localNote || '') : ''
     onChange(q.id, { answer: val, note: newNote })
   }
