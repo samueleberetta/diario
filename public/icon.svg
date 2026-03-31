@@ -1,17 +1,32 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Sfondo arrotondato color carta -->
   <rect width="512" height="512" rx="110" fill="#f0e6d0"/>
+
+  <!-- Dorso del diario (sinistra) -->
   <rect x="108" y="76" width="52" height="360" rx="12" fill="#6B3A2A"/>
+
+  <!-- Copertina -->
   <rect x="148" y="76" width="258" height="360" rx="12" fill="#8B4513"/>
+
+  <!-- Pagine interne -->
   <rect x="162" y="88" width="234" height="336" rx="8" fill="#FFF8EE"/>
+
+  <!-- Anelli di rilegatura -->
   <circle cx="134" cy="182" r="10" fill="#4A2810"/>
   <circle cx="134" cy="256" r="10" fill="#4A2810"/>
   <circle cx="134" cy="330" r="10" fill="#4A2810"/>
+
+  <!-- Area titolo -->
   <rect x="182" y="112" width="194" height="48" rx="6" fill="#D4A96A" opacity="0.35"/>
   <rect x="198" y="126" width="130" height="10" rx="5" fill="#8B4513" opacity="0.45"/>
+
+  <!-- Righe testo -->
   <rect x="182" y="182" width="175" height="9" rx="4.5" fill="#C8A97A" opacity="0.7"/>
   <rect x="182" y="208" width="155" height="9" rx="4.5" fill="#C8A97A" opacity="0.7"/>
   <rect x="182" y="234" width="165" height="9" rx="4.5" fill="#C8A97A" opacity="0.7"/>
   <rect x="182" y="260" width="145" height="9" rx="4.5" fill="#C8A97A" opacity="0.7"/>
   <rect x="182" y="286" width="170" height="9" rx="4.5" fill="#C8A97A" opacity="0.7"/>
+
+  <!-- Segnalibro rosso -->
   <polygon points="284,88 300,88 300,330 292,316 284,330" fill="#C0392B"/>
 </svg>
