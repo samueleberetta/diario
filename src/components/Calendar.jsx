@@ -149,7 +149,7 @@ export default function Calendar({ entries, questionDefs, eventsForDate, onSelec
 
               {/* Special events */}
               {events.length > 0 && (
-                <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-amber-500" />
+                <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-violet-500" />
               )}
 
               {/* Hover tooltip: event titles */}
@@ -171,7 +171,7 @@ export default function Calendar({ entries, questionDefs, eventsForDate, onSelec
           { color: 'bg-done',    label: 'Completato' },
           { color: 'bg-partial', label: 'Parziale' },
           { color: 'bg-missed',  label: 'Non fatto' },
-          { color: 'bg-amber-500', label: 'Evento' },
+          { color: 'bg-violet-500', label: 'Evento' },
         ].map(({ color, label }) => (
           <div key={label} className="flex items-center gap-1.5">
             <span className={`w-2.5 h-2.5 rounded-full ${color}`} />
