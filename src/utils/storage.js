@@ -76,9 +76,13 @@ export function getDayStatus(entry, questionDefs) {
   const defs = questionDefs && questionDefs.length > 0 ? questionDefs : QUESTIONS.map(q => ({ id: q.key }))
   const answers = defs.map(q => qs[q.id]?.answer).filter(Boolean)
   if (answers.length === 0) return entry.diary ? 'partial' : 'empty'
-  if (answers.every(a => a === 'yes')) return 'done'
-  if (answers.some(a => a === 'no')) return 'missed'
-  return 'partial'
+
+  // Punteggio: yes=1, partial=0.5, no=0 — verde se media ≥50%
+  const score = answers.reduce((sum, a) => sum + (a === 'yes' ? 1 : a === 'partial' ? 0.5 : 0), 0)
+  const ratio = score / answers.length
+  if (ratio >= 0.5) return 'done'
+  if (ratio > 0)   return 'partial'
+  return 'missed'
 }
 
 export function formatDate(date) {

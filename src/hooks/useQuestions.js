@@ -30,9 +30,15 @@ export function useQuestions(userId) {
 
   const saveQuestions = useCallback(async (newQuestions) => {
     setQuestions(newQuestions)
-    await supabase
+    const { error } = await supabase
       .from('profiles')
-      .upsert({ id: userId, custom_questions: newQuestions })
+      .update({ custom_questions: newQuestions })
+      .eq('id', userId)
+    if (error) {
+      console.error('Errore salvataggio domande:', error)
+      // Ripristina dal DB in caso di errore
+      fetchQuestions()
+    }
   }, [userId])
 
   return { questions, loading, saveQuestions }

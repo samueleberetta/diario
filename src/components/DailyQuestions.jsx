@@ -109,6 +109,11 @@ export default function DailyQuestions({ questionDefs, answers, onChange, readOn
           />
         ))}
       </div>
+      {!readOnly && (
+        <p className="px-4 pb-3 pt-1 text-xs text-ink-muted/70">
+          🟢 verde se ≥50% degli obiettivi raggiunti · 🟡 arancione se parziale · 🔴 rosso se &lt;50%
+        </p>
+      )}
     </div>
   )
 }
