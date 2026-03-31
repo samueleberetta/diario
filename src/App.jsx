@@ -6,10 +6,12 @@ import EmailConfirmedPage  from './components/EmailConfirmedPage'
 import Calendar            from './components/Calendar'
 import DayView             from './components/DayView'
 import StatsPanel          from './components/StatsPanel'
+import InstallModal        from './components/InstallModal'
 import NotificationPrompt, { NotificationToggle } from './components/NotificationPrompt'
 import { useEntries  } from './hooks/useEntries'
 import { useEvents   } from './hooks/useEvents'
 import { useQuestions } from './hooks/useQuestions'
+import { useInstallPrompt } from './hooks/useInstallPrompt'
 import { today, getDayStatus } from './utils/storage'
 
 // ---- Inner app (solo quando loggato) ----
@@ -18,8 +20,10 @@ function DiaryApp() {
   const { entries, updateEntry, getEntry } = useEntries(user.id)
   const { addEvent, removeEvent, eventsForDate } = useEvents(user.id)
   const { questions, saveQuestions } = useQuestions(user.id)
+  const { isInstalled, prompt, triggerInstall, platform } = useInstallPrompt()
 
-  const [selectedDate, setSelectedDate] = useState(null)
+  const [selectedDate,  setSelectedDate]  = useState(null)
+  const [showInstall,   setShowInstall]   = useState(false)
   const [calView] = useState(() => {
     const now = new Date()
     return { year: now.getFullYear(), month: now.getMonth() }
@@ -64,12 +68,21 @@ function DiaryApp() {
             <span className="font-serif text-lg font-bold text-ink tracking-wide">Diario</span>
           </div>
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setSelectedDate(today())}
-              className="text-sm px-4 py-1.5 rounded-full bg-ink text-white font-medium hover:bg-ink-light transition-colors shadow-sm"
-            >
-              Oggi
-            </button>
+            {isInstalled ? (
+              <button
+                onClick={() => setSelectedDate(today())}
+                className="text-sm px-4 py-1.5 rounded-full bg-ink text-white font-medium hover:bg-ink-light transition-colors shadow-sm"
+              >
+                Oggi
+              </button>
+            ) : (
+              <button
+                onClick={() => setShowInstall(true)}
+                className="text-sm px-4 py-1.5 rounded-full bg-ink text-white font-medium hover:bg-ink-light transition-colors shadow-sm"
+              >
+                Scarica l'app
+              </button>
+            )}
             {/* User menu */}
             <div className="relative group">
               <button className="flex items-center gap-1.5 text-sm text-ink-muted hover:text-ink transition-colors">
@@ -116,6 +129,15 @@ function DiaryApp() {
           />
         </div>
       </main>
+
+      {showInstall && (
+        <InstallModal
+          platform={platform}
+          prompt={prompt}
+          triggerInstall={triggerInstall}
+          onClose={() => setShowInstall(false)}
+        />
+      )}
     </div>
   )
 }
