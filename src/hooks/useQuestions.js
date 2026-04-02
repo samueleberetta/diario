@@ -6,26 +6,31 @@ export const DEFAULT_QUESTIONS = [
   { id: 'feeling', emoji: '😊', label: 'Stai bene oggi?' },
 ]
 
-const LS_KEY = (uid) => `diario_questions_${uid}`
+const lsKey = (uid) => `diario_questions_${uid}`
+
+function readLS(userId) {
+  try {
+    const raw = localStorage.getItem(lsKey(userId))
+    if (raw) return JSON.parse(raw)
+  } catch {}
+  return null
+}
+
+function writeLS(userId, questions) {
+  try { localStorage.setItem(lsKey(userId), JSON.stringify(questions)) } catch {}
+}
 
 export function useQuestions(userId) {
-  const [questions,    setQuestions]    = useState(DEFAULT_QUESTIONS)
-  const [loading,      setLoading]      = useState(true)
-  const [saveError,    setSaveError]    = useState(null)
+  // Inizializza SUBITO dal localStorage — nessun flash dei default
+  const [questions, setQuestions] = useState(() => readLS(userId) ?? DEFAULT_QUESTIONS)
+  const [saveError, setSaveError] = useState(null)
 
   useEffect(() => {
     if (!userId) return
-    fetchQuestions()
+    syncFromDB()
   }, [userId])
 
-  async function fetchQuestions() {
-    // 1. Carica subito dal localStorage per evitare il flash dei default
-    try {
-      const cached = localStorage.getItem(LS_KEY(userId))
-      if (cached) setQuestions(JSON.parse(cached))
-    } catch {}
-
-    // 2. Legge dal DB (fonte di verità)
+  async function syncFromDB() {
     const { data, error } = await supabase
       .from('profiles')
       .select('custom_questions')
@@ -33,25 +38,26 @@ export function useQuestions(userId) {
       .single()
 
     if (error?.code === 'PGRST116') {
-      // Profilo mancante — lo crea (trigger non è girato)
+      // Profilo mancante — crealo
       await supabase.from('profiles').upsert({ id: userId }, { onConflict: 'id' })
-    } else if (!error && data?.custom_questions) {
-      setQuestions(data.custom_questions)
-      // Aggiorna la cache locale con i dati freschi dal DB
-      try { localStorage.setItem(LS_KEY(userId), JSON.stringify(data.custom_questions)) } catch {}
+      return
     }
 
-    setLoading(false)
+    if (!error && data?.custom_questions) {
+      // DB ha dati validi → aggiorna stato e cache locale
+      setQuestions(data.custom_questions)
+      writeLS(userId, data.custom_questions)
+    }
+    // Se DB ha custom_questions null, teniamo quelli in localStorage (già nello stato)
   }
 
   const saveQuestions = useCallback(async (newQuestions) => {
     setSaveError(null)
+    // 1. Aggiorna stato e localStorage immediatamente (sincrono)
     setQuestions(newQuestions)
+    writeLS(userId, newQuestions)
 
-    // Salva subito nel localStorage (backup immediato)
-    try { localStorage.setItem(LS_KEY(userId), JSON.stringify(newQuestions)) } catch {}
-
-    // Salva nel DB
+    // 2. Persiste su DB
     const { error } = await supabase
       .from('profiles')
       .upsert(
@@ -61,10 +67,10 @@ export function useQuestions(userId) {
 
     if (error) {
       const detail = error.message || error.details || error.hint || error.code || JSON.stringify(error)
-      console.error('[useQuestions] Errore salvataggio su DB:', error)
+      console.error('[useQuestions] Errore salvataggio DB:', error)
       setSaveError(`Salvataggio DB fallito: ${detail}`)
     }
   }, [userId])
 
-  return { questions, loading, saveError, saveQuestions }
+  return { questions, saveError, saveQuestions }
 }
