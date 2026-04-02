@@ -19,7 +19,7 @@ function DiaryApp() {
   const { user, displayName, signOut } = useAuth()
   const { entries, updateEntry, getEntry } = useEntries(user.id)
   const { addEvent, removeEvent, eventsForDate } = useEvents(user.id)
-  const { questions, saveQuestions } = useQuestions(user.id)
+  const { questions, saveQuestions, saveError } = useQuestions(user.id)
   const { isInstalled, prompt, triggerInstall, platform } = useInstallPrompt()
 
   const [selectedDate,  setSelectedDate]  = useState(null)
@@ -112,6 +112,11 @@ function DiaryApp() {
       </header>
 
       <main className="max-w-2xl mx-auto px-2">
+        {saveError && (
+          <div className="mx-2 mt-3 text-xs text-missed bg-missed/10 border border-missed/20 rounded-lg px-3 py-2 break-all">
+            ⚠️ {saveError}
+          </div>
+        )}
         <NotificationPrompt userId={user.id} />
         <Calendar
           entries={entries}
