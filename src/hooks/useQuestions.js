@@ -60,8 +60,9 @@ export function useQuestions(userId) {
       )
 
     if (error) {
+      const detail = error.message || error.details || error.hint || error.code || JSON.stringify(error)
       console.error('[useQuestions] Errore salvataggio su DB:', error)
-      setSaveError(`Salvataggio DB fallito: ${error.message}`)
+      setSaveError(`Salvataggio DB fallito: ${detail}`)
     }
   }, [userId])
 
